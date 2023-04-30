@@ -19,20 +19,20 @@ func TestParse(t *testing.T) {
 		input:    "{}",
 		expected: nil,
 	}, {
-		name:  "equals",
-		input: "{foo=bar}",
+		name:     "equals",
+		input:    "{foo=bar}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchEqual, "foo", "bar")},
 	}, {
-		name:  "not equals",
-		input: "{foo!=bar}",
+		name:     "not equals",
+		input:    "{foo!=bar}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchNotEqual, "foo", "bar")},
 	}, {
-		name:  "match regex",
-		input: "{foo=~\"[a-z]+\"}",
+		name:     "match regex",
+		input:    "{foo=~\"[a-z]+\"}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchRegexp, "foo", "[a-z]+")},
 	}, {
-		name:  "doesn't match regex",
-		input: "{foo!~\"[a-z]+\"}",
+		name:     "doesn't match regex",
+		input:    "{foo!~\"[a-z]+\"}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchNotRegexp, "foo", "[a-z]+")},
 	}, {
 		name:  "equals and a not equals",
@@ -42,7 +42,7 @@ func TestParse(t *testing.T) {
 			mustNewMatcher(t, labels.MatchNotEqual, "bar", "baz"),
 		},
 	}, {
-		name: "equals unicode emoji",
+		name:  "equals unicode emoji",
 		input: "{foo=\"🙂\"}",
 		expected: labels.Matchers{
 			mustNewMatcher(t, labels.MatchEqual, "foo", "🙂"),
