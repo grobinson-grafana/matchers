@@ -14,20 +14,14 @@ var (
 	ErrNoClosingParen = errors.New("expected closing '}'")
 )
 
-func Parse(s string) (labels.Matchers, error) {
+func Parse(input string) (labels.Matchers, error) {
 	var (
-		err      error
 		it       Iterator
 		tok      Token
-		tokens   []Token
 		matchers labels.Matchers
 	)
 
-	if tokens, err = Lex(s); err != nil {
-		return nil, fmt.Errorf("failed to tokenize input: %s", err)
-	}
-
-	it = NewIterator(tokens)
+	it = NewIterator(NewLexer(input))
 
 	// Must start with opening paren
 	if tok = it.Next(); tok.Kind != TokenOpenParen {
@@ -41,7 +35,7 @@ func Parse(s string) (labels.Matchers, error) {
 		}
 
 		// The next token should be the label name
-		if tok = it.Next(); tok.Kind != TokenLiteral {
+		if tok = it.Next(); tok.Kind != TokenIdent {
 			return nil, fmt.Errorf("expected a label name, got '%s'", tok.Value)
 		}
 		name := tok.Value
@@ -65,7 +59,7 @@ func Parse(s string) (labels.Matchers, error) {
 		}
 
 		// The next token after the operator should be the label value
-		if tok = it.Next(); tok.Kind != TokenLiteral {
+		if tok = it.Next(); tok.Kind != TokenQuoted {
 			return nil, fmt.Errorf("expected a label value, got '%s'", tok.Value)
 		}
 		value := strings.TrimPrefix(strings.TrimSuffix(tok.Value, "\""), "\"")
@@ -85,7 +79,7 @@ func Parse(s string) (labels.Matchers, error) {
 		if tok = it.Peek(); tok.Kind == TokenComma {
 			it.Next()
 			// The next token is a comma so the one after that must be a label name
-			if tok = it.Peek(); tok.Kind != TokenLiteral {
+			if tok = it.Peek(); tok.Kind != TokenIdent {
 				return nil, fmt.Errorf("expected label name after comma, got '%s'", tok.Value)
 			}
 		}

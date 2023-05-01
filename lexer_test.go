@@ -7,12 +7,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLex(t *testing.T) {
+func TestLexer_Scan(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
 		expected []Token
+		err      string
 	}{{
+		name:  "open paren",
+		input: "{",
+		expected: []Token{
+			{Kind: TokenOpenParen, Value: "{"},
+		},
+	}, {
+		name:  "open paren with space",
+		input: " {",
+		expected: []Token{
+			{Kind: TokenOpenParen, Value: "{"},
+		},
+	}, {
+		name:  "close paren",
+		input: "}",
+		expected: []Token{
+			{Kind: TokenCloseParen, Value: "}"},
+		},
+	}, {
+		name:  "close paren with space",
+		input: "}",
+		expected: []Token{
+			{Kind: TokenCloseParen, Value: "}"},
+		},
+	}, {
 		name:  "open and closing parens",
 		input: "{}",
 		expected: []Token{
@@ -20,71 +45,146 @@ func TestLex(t *testing.T) {
 			{Kind: TokenCloseParen, Value: "}"},
 		},
 	}, {
-		name:  "equals",
-		input: "{hello=world}",
+		name:  "open and closing parens with space",
+		input: "{ }",
 		expected: []Token{
 			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenLiteral, Value: "hello"},
-			{Kind: TokenOperator, Value: "="},
-			{Kind: TokenLiteral, Value: "world"},
 			{Kind: TokenCloseParen, Value: "}"},
 		},
 	}, {
-		name:  "not equals",
-		input: "{hello!=world}",
+		name:  "ident",
+		input: "hello",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenLiteral, Value: "hello"},
+			{Kind: TokenIdent, Value: "hello"},
+		},
+	}, {
+		name:  "idents with space",
+		input: "hello world",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello"},
+			{Kind: TokenIdent, Value: "world"},
+		},
+	}, {
+		name:  "quoted",
+		input: "\"hello\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello\""},
+		},
+	}, {
+		name:  "quoted with unicode",
+		input: "\"hello 🙂\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello 🙂\""},
+		},
+	}, {
+		name:  "quoted with space",
+		input: "\"hello world\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello world\""},
+		},
+	}, {
+		name:  "quoted with tab",
+		input: "\"hello\tworld\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello\tworld\""},
+		},
+	}, {
+		name:  "quoted with newline",
+		input: "\"hello\nworld\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello\nworld\""},
+		},
+	}, {
+		name:  "quoted with escaped quotes",
+		input: "\"hello \\\"world\\\"\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello \\\"world\\\"\""},
+		},
+	}, {
+		name:  "quoted with escaped backticks",
+		input: "\"hello \\world\"",
+		expected: []Token{
+			{Kind: TokenQuoted, Value: "\"hello \\world\""},
+		},
+	}, {
+		name:  "equals operator",
+		input: "=",
+		expected: []Token{
+			{Kind: TokenOperator, Value: "="},
+		},
+	}, {
+		name:  "not equals operator",
+		input: "!=",
+		expected: []Token{
 			{Kind: TokenOperator, Value: "!="},
-			{Kind: TokenLiteral, Value: "world"},
-			{Kind: TokenCloseParen, Value: "}"},
 		},
 	}, {
-		name:  "match regex",
-		input: "{hello=~\"[a-z]+\"}",
+		name:  "matches regex operator",
+		input: "=~",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenLiteral, Value: "hello"},
 			{Kind: TokenOperator, Value: "=~"},
-			{Kind: TokenLiteral, Value: "\"[a-z]+\""},
-			{Kind: TokenCloseParen, Value: "}"},
 		},
 	}, {
-		name:  "doesn't match regex",
-		input: "{hello!~\"[a-z]+\"}",
+		name:  "not matches regex operator",
+		input: "!~",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenLiteral, Value: "hello"},
 			{Kind: TokenOperator, Value: "!~"},
-			{Kind: TokenLiteral, Value: "\"[a-z]+\""},
-			{Kind: TokenCloseParen, Value: "}"},
 		},
 	}, {
-		name:  "no parens",
-		input: "hello=world",
-		expected: []Token{
-			{Kind: TokenLiteral, Value: "hello"},
-			{Kind: TokenOperator, Value: "="},
-			{Kind: TokenLiteral, Value: "world"},
-		},
+		name:  "unexpected $",
+		input: "$",
+		err:   "unexpected input: $",
 	}, {
-		name:  "invalid operator",
-		input: "{hello=:world}",
+		name:  "unexpected non alpha numeric in ident",
+		input: "hello$",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenLiteral, Value: "hello"},
-			{Kind: TokenOperator, Value: "="},
-			{Kind: TokenLiteral, Value: ":"},
-			{Kind: TokenLiteral, Value: "world"},
-			{Kind: TokenCloseParen, Value: "}"},
+			{Kind: TokenIdent, Value: "hello"},
 		},
+		err: "unexpected input: hello$",
+	}, {
+		name:  "unexpected unicode in ident",
+		input: "hello🙂",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello"},
+		},
+		err: "unexpected input: hello🙂",
+	}, {
+		name:  "unexpected operator",
+		input: "=$",
+		expected: []Token{
+			{Kind: TokenOperator, Value: "="},
+		},
+		err: "unexpected input: =$",
+	}, {
+		name:  "unterminated quoted",
+		input: "\"hello",
+		err:   "expected one of '\"', got EOF",
+	}, {
+		name:  "unterminated quoted with escaped quote",
+		input: "\"hello\\\"",
+		err:   "expected one of '\"', got EOF",
 	}}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tokens, err := Lex(test.input)
-			require.NoError(t, err)
-			assert.Equal(t, test.expected, tokens)
+			l := NewLexer(test.input)
+			// scan all expected tokens
+			for i := 0; i < len(test.expected); i++ {
+				tok, err := l.Scan()
+				require.NoError(t, err)
+				assert.Equal(t, test.expected[i], tok)
+			}
+			if test.err == "" {
+				// check there are no more tokens
+				tok, err := l.Scan()
+				require.NoError(t, err)
+				assert.Equal(t, Token{}, tok)
+			} else {
+				// check if expected error is returned
+				tok, err := l.Scan()
+				assert.Equal(t, Token{}, tok)
+				assert.EqualError(t, err, test.err)
+			}
 		})
 	}
 }

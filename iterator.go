@@ -1,33 +1,37 @@
 package matchers
 
 type Iterator struct {
-	tokens []Token
-	pos    int
+	lexer   Lexer
+	current Token
+	next    Token
 }
 
-func NewIterator(tokens []Token) Iterator {
-	return Iterator{tokens: tokens, pos: -1}
-}
-
-func (it *Iterator) IsLast() bool {
-	return it.pos == len(it.tokens)-1
+func NewIterator(lexer Lexer) Iterator {
+	return Iterator{
+		lexer: lexer,
+	}
 }
 
 func (it *Iterator) Next() Token {
-	if !it.IsLast() {
-		it.pos += 1
-		return it.tokens[it.pos]
+	if it.next != (Token{}) {
+		it.current = it.next
+		it.next = Token{}
+		return it.current
 	}
-	return Token{}
+	if tok, err := it.lexer.Scan(); err == nil && tok.Kind != TokenNone {
+		it.current = tok
+		return it.current
+	}
+	return Token{Kind: TokenNone}
 }
 
 func (it *Iterator) Peek() Token {
-	if !it.IsLast() {
-		return it.tokens[it.pos+1]
+	if it.next == (Token{}) {
+		if tok, err := it.lexer.Scan(); err == nil && tok.Kind != TokenNone {
+			it.next = tok
+		} else {
+			it.next = Token{Kind: TokenNone}
+		}
 	}
-	return Token{}
-}
-
-func (it *Iterator) Pos() int {
-	return it.pos
+	return it.next
 }

@@ -20,11 +20,11 @@ func TestParse(t *testing.T) {
 		expected: nil,
 	}, {
 		name:     "equals",
-		input:    "{foo=bar}",
+		input:    "{foo=\"bar\"}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchEqual, "foo", "bar")},
 	}, {
 		name:     "not equals",
-		input:    "{foo!=bar}",
+		input:    "{foo!=\"bar\"}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchNotEqual, "foo", "bar")},
 	}, {
 		name:     "match regex",
@@ -36,7 +36,7 @@ func TestParse(t *testing.T) {
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchNotRegexp, "foo", "[a-z]+")},
 	}, {
 		name:  "equals and a not equals",
-		input: "{foo=bar,bar!=baz}",
+		input: "{foo=\"bar\",bar!=\"baz\"}",
 		expected: labels.Matchers{
 			mustNewMatcher(t, labels.MatchEqual, "foo", "bar"),
 			mustNewMatcher(t, labels.MatchNotEqual, "bar", "baz"),
@@ -49,16 +49,16 @@ func TestParse(t *testing.T) {
 		},
 	}, {
 		name:  "no parens",
-		input: "foo=bar",
+		input: "foo=\"bar\"",
 		error: "expected opening '{'",
 	}, {
 		name:  "invalid operator",
-		input: "{foo=:bar}",
-		error: "expected comma or closing '}', got 'bar'",
+		input: "{foo=:\"bar\"}",
+		error: "expected a label value, got ''",
 	}, {
 		name:  "another invalid operator",
-		input: "{foo%=bar}",
-		error: "expected one of '=', '!=', '=~' or '!~', got '%'",
+		input: "{foo%=\"bar\"}",
+		error: "expected one of '=', '!=', '=~' or '!~', got ''",
 	}}
 
 	for _, test := range tests {
