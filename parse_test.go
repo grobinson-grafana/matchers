@@ -48,6 +48,14 @@ func TestParse(t *testing.T) {
 			mustNewMatcher(t, labels.MatchEqual, "foo", "🙂"),
 		},
 	}, {
+		name:  "open paren",
+		input: "{",
+		error: "expected a label name, got ''",
+	}, {
+		name:  "close paren",
+		input: "}",
+		error: "expected opening '{'",
+	}, {
 		name:  "no parens",
 		input: "foo=\"bar\"",
 		error: "expected opening '{'",

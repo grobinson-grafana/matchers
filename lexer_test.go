@@ -149,13 +149,13 @@ func TestLexer_Scan(t *testing.T) {
 		},
 		err: "unexpected input: hello🙂",
 	}, {
-		name: "invalid operator",
+		name:  "invalid operator",
 		input: "!",
-		err: "expected one of '=~', got EOF",
+		err:   "expected one of '=~', got EOF",
 	}, {
-		name: "another invalid operator",
+		name:  "another invalid operator",
 		input: "~",
-		err: "unexpected input: ~",
+		err:   "unexpected input: ~",
 	}, {
 		name:  "unexpected $ in operator",
 		input: "=$",
@@ -217,6 +217,47 @@ func TestLexer_ScanError(t *testing.T) {
 	l := NewLexer("\"hello")
 	for i := 0; i < 10; i++ {
 		tok, err := l.Scan()
+		assert.Equal(t, Token{}, tok)
+		assert.EqualError(t, err, "expected one of '\"', got EOF")
+	}
+}
+
+func TestLexer_Peek(t *testing.T) {
+	l := NewLexer("hello world")
+	expected1 := Token{Kind: TokenIdent, Value: "hello"}
+	expected2 := Token{Kind: TokenIdent, Value: "world"}
+	// check that Peek() returns the first token
+	tok, err := l.Peek()
+	assert.NoError(t, err)
+	assert.Equal(t, expected1, tok)
+	// check that Scan() returns the peeked token
+	tok, err = l.Scan()
+	assert.NoError(t, err)
+	assert.Equal(t, expected1, tok)
+	// check that Peek() returns the second token until the next Scan()
+	for i := 0; i < 10; i++ {
+		tok, err = l.Peek()
+		assert.NoError(t, err)
+		assert.Equal(t, expected2, tok)
+	}
+	// check that Scan() returns the last token
+	tok, err = l.Scan()
+	assert.NoError(t, err)
+	assert.Equal(t, expected2, tok)
+	// should not be able to Peek() further tokens
+	for i := 0; i < 10; i++ {
+		tok, err = l.Peek()
+		assert.NoError(t, err)
+		assert.Equal(t, Token{}, tok)
+	}
+}
+
+// This test asserts that the lexer does not emit more tokens after an
+// error has occurred.
+func TestLexer_PeekError(t *testing.T) {
+	l := NewLexer("\"hello")
+	for i := 0; i < 10; i++ {
+		tok, err := l.Peek()
 		assert.Equal(t, Token{}, tok)
 		assert.EqualError(t, err, "expected one of '\"', got EOF")
 	}

@@ -31,6 +31,19 @@ func NewLexer(input string) Lexer {
 	}
 }
 
+func (l *Lexer) Peek() (Token, error) {
+	start := l.start
+	pos := l.pos
+	width := l.width
+	// Do not reset l.err because we can return it on the next call to Scan()
+	defer func() {
+		l.start = start
+		l.pos = pos
+		l.width = width
+	}()
+	return l.Scan()
+}
+
 func (l *Lexer) Scan() (Token, error) {
 	// Do not attempt to emit more tokens if the input is invalid
 	if l.err != nil {
