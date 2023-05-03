@@ -135,14 +135,29 @@ func TestLexer_Scan(t *testing.T) {
 		input: "$",
 		err:   "0:1: unexpected input: $",
 	}, {
-		name:  "unexpected non alpha-numeric in ident",
+		name:  "unexpected emoji",
+		input: "🙂",
+		err: "0:4: unexpected input: 🙂",
+	}, {
+		name:  "unexpected unicode letter",
+		input: "Σ",
+		err: "0:2: unexpected input: Σ",
+	}, {
+		name:  "unexpected $ in ident",
 		input: "hello$",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
 		err: "5:6: unexpected input: $",
 	}, {
-		name:  "unexpected unicode in ident",
+		name:  "unexpected unicode letter in ident",
+		input: "helloΣ",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
+		},
+		err: "5:7: unexpected input: Σ",
+	}, {
+		name:  "unexpected emoji in ident",
 		input: "hello🙂",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
