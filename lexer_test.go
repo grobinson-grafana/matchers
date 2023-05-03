@@ -17,118 +17,118 @@ func TestLexer_Scan(t *testing.T) {
 		name:  "open paren",
 		input: "{",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
+			{Kind: TokenOpenParen, Value: "{", Start: 0, End: 1},
 		},
 	}, {
 		name:  "open paren with space",
 		input: " {",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
+			{Kind: TokenOpenParen, Value: "{", Start: 1, End: 2},
 		},
 	}, {
 		name:  "close paren",
 		input: "}",
 		expected: []Token{
-			{Kind: TokenCloseParen, Value: "}"},
+			{Kind: TokenCloseParen, Value: "}", Start: 0, End: 1},
 		},
 	}, {
 		name:  "close paren with space",
 		input: "}",
 		expected: []Token{
-			{Kind: TokenCloseParen, Value: "}"},
+			{Kind: TokenCloseParen, Value: "}", Start: 0, End: 1},
 		},
 	}, {
 		name:  "open and closing parens",
 		input: "{}",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenCloseParen, Value: "}"},
+			{Kind: TokenOpenParen, Value: "{", Start: 0, End: 1},
+			{Kind: TokenCloseParen, Value: "}", Start: 1, End: 2},
 		},
 	}, {
 		name:  "open and closing parens with space",
 		input: "{ }",
 		expected: []Token{
-			{Kind: TokenOpenParen, Value: "{"},
-			{Kind: TokenCloseParen, Value: "}"},
+			{Kind: TokenOpenParen, Value: "{", Start: 0, End: 1},
+			{Kind: TokenCloseParen, Value: "}", Start: 2, End: 3},
 		},
 	}, {
 		name:  "ident",
 		input: "hello",
 		expected: []Token{
-			{Kind: TokenIdent, Value: "hello"},
+			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
 	}, {
 		name:  "idents with space",
 		input: "hello world",
 		expected: []Token{
-			{Kind: TokenIdent, Value: "hello"},
-			{Kind: TokenIdent, Value: "world"},
+			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
+			{Kind: TokenIdent, Value: "world", Start: 6, End: 11},
 		},
 	}, {
 		name:  "quoted",
 		input: "\"hello\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello\""},
+			{Kind: TokenQuoted, Value: "\"hello\"", Start: 0, End: 7},
 		},
 	}, {
 		name:  "quoted with unicode",
 		input: "\"hello 🙂\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello 🙂\""},
+			{Kind: TokenQuoted, Value: "\"hello 🙂\"", Start: 0, End: 12},
 		},
 	}, {
 		name:  "quoted with space",
 		input: "\"hello world\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello world\""},
+			{Kind: TokenQuoted, Value: "\"hello world\"", Start: 0, End: 13},
 		},
 	}, {
 		name:  "quoted with tab",
 		input: "\"hello\tworld\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello\tworld\""},
+			{Kind: TokenQuoted, Value: "\"hello\tworld\"", Start: 0, End: 13},
 		},
 	}, {
 		name:  "quoted with newline",
 		input: "\"hello\nworld\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello\nworld\""},
+			{Kind: TokenQuoted, Value: "\"hello\nworld\"", Start: 0, End: 13},
 		},
 	}, {
 		name:  "quoted with escaped quotes",
 		input: "\"hello \\\"world\\\"\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello \\\"world\\\"\""},
+			{Kind: TokenQuoted, Value: "\"hello \\\"world\\\"\"", Start: 0, End: 17},
 		},
 	}, {
 		name:  "quoted with escaped backticks",
 		input: "\"hello \\world\"",
 		expected: []Token{
-			{Kind: TokenQuoted, Value: "\"hello \\world\""},
+			{Kind: TokenQuoted, Value: "\"hello \\world\"", Start: 0, End: 14},
 		},
 	}, {
 		name:  "equals operator",
 		input: "=",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "="},
+			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
 	}, {
 		name:  "not equals operator",
 		input: "!=",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "!="},
+			{Kind: TokenOperator, Value: "!=", Start: 0, End: 2},
 		},
 	}, {
 		name:  "matches regex operator",
 		input: "=~",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "=~"},
+			{Kind: TokenOperator, Value: "=~", Start: 0, End: 2},
 		},
 	}, {
 		name:  "not matches regex operator",
 		input: "!~",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "!~"},
+			{Kind: TokenOperator, Value: "!~", Start: 0, End: 2},
 		},
 	}, {
 		name:  "unexpected $",
@@ -138,14 +138,14 @@ func TestLexer_Scan(t *testing.T) {
 		name:  "unexpected non alpha-numeric in ident",
 		input: "hello$",
 		expected: []Token{
-			{Kind: TokenIdent, Value: "hello"},
+			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
 		err: "unexpected input: hello$",
 	}, {
 		name:  "unexpected unicode in ident",
 		input: "hello🙂",
 		expected: []Token{
-			{Kind: TokenIdent, Value: "hello"},
+			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
 		err: "unexpected input: hello🙂",
 	}, {
@@ -160,21 +160,21 @@ func TestLexer_Scan(t *testing.T) {
 		name:  "unexpected $ in operator",
 		input: "=$",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "="},
+			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
 		err: "unexpected input: =$",
 	}, {
 		name:  "unexpected ! after operator",
 		input: "=!",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "="},
+			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
 		err: "expected one of '=~', got EOF",
 	}, {
 		name:  "unexpected !! after operator",
 		input: "!=!!",
 		expected: []Token{
-			{Kind: TokenOperator, Value: "!="},
+			{Kind: TokenOperator, Value: "!=", Start: 0, End: 2},
 		},
 		err: "expected one of '=~', got '!'",
 	}, {
@@ -224,8 +224,8 @@ func TestLexer_ScanError(t *testing.T) {
 
 func TestLexer_Peek(t *testing.T) {
 	l := NewLexer("hello world")
-	expected1 := Token{Kind: TokenIdent, Value: "hello"}
-	expected2 := Token{Kind: TokenIdent, Value: "world"}
+	expected1 := Token{Kind: TokenIdent, Value: "hello", Start: 0, End: 5}
+	expected2 := Token{Kind: TokenIdent, Value: "world", Start: 6, End: 11}
 	// check that Peek() returns the first token
 	tok, err := l.Peek()
 	assert.NoError(t, err)

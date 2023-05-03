@@ -174,6 +174,8 @@ func (l *Lexer) emit(kind TokenKind) Token {
 	tok := Token{
 		Kind:  kind,
 		Value: l.input[l.start:l.pos],
+		Start: l.start,
+		End:   l.pos,
 	}
 	l.start = l.pos
 	return tok

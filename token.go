@@ -38,6 +38,8 @@ func (k TokenKind) String() string {
 type Token struct {
 	Kind  TokenKind
 	Value string
+	Start int // The start position in the input
+	End   int // The end position in the input
 }
 
 func (t Token) String() string {
