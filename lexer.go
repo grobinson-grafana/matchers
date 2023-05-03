@@ -77,7 +77,7 @@ func (l *Lexer) Scan() (Token, error) {
 		case unicode.IsSpace(r):
 			l.skip()
 		default:
-			l.err = fmt.Errorf("unexpected input: %s", l.input[0:l.pos])
+			l.err = fmt.Errorf("%d:%d: unexpected input: %c", l.start, l.pos, r)
 			return Token{}, l.err
 		}
 	}
@@ -161,10 +161,10 @@ func (l *Lexer) expect(valid string) error {
 	r := l.next()
 	if r == -1 {
 		l.rewind()
-		return fmt.Errorf("expected one of '%s', got EOF", valid)
+		return fmt.Errorf("%d:%d: expected one of '%s', got EOF", l.start, l.pos, valid)
 	} else if strings.IndexRune(valid, r) < 0 {
 		l.rewind()
-		return fmt.Errorf("expected one of '%s', got '%c'", valid, r)
+		return fmt.Errorf("%d:%d: expected one of '%s', got '%c'", l.start, l.pos, valid, r)
 	} else {
 		return nil
 	}

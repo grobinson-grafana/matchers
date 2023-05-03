@@ -133,58 +133,58 @@ func TestLexer_Scan(t *testing.T) {
 	}, {
 		name:  "unexpected $",
 		input: "$",
-		err:   "unexpected input: $",
+		err:   "0:1: unexpected input: $",
 	}, {
 		name:  "unexpected non alpha-numeric in ident",
 		input: "hello$",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
-		err: "unexpected input: hello$",
+		err: "5:6: unexpected input: $",
 	}, {
 		name:  "unexpected unicode in ident",
 		input: "hello🙂",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
-		err: "unexpected input: hello🙂",
+		err: "5:9: unexpected input: 🙂",
 	}, {
 		name:  "invalid operator",
 		input: "!",
-		err:   "expected one of '=~', got EOF",
+		err:   "0:1: expected one of '=~', got EOF",
 	}, {
 		name:  "another invalid operator",
 		input: "~",
-		err:   "unexpected input: ~",
+		err:   "0:1: unexpected input: ~",
 	}, {
 		name:  "unexpected $ in operator",
 		input: "=$",
 		expected: []Token{
 			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
-		err: "unexpected input: =$",
+		err: "1:2: unexpected input: $",
 	}, {
 		name:  "unexpected ! after operator",
 		input: "=!",
 		expected: []Token{
 			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
-		err: "expected one of '=~', got EOF",
+		err: "1:2: expected one of '=~', got EOF",
 	}, {
 		name:  "unexpected !! after operator",
 		input: "!=!!",
 		expected: []Token{
 			{Kind: TokenOperator, Value: "!=", Start: 0, End: 2},
 		},
-		err: "expected one of '=~', got '!'",
+		err: "2:3: expected one of '=~', got '!'",
 	}, {
 		name:  "unterminated quoted",
 		input: "\"hello",
-		err:   "expected one of '\"', got EOF",
+		err:   "0:6: expected one of '\"', got EOF",
 	}, {
 		name:  "unterminated quoted with escaped quote",
 		input: "\"hello\\\"",
-		err:   "expected one of '\"', got EOF",
+		err:   "0:8: expected one of '\"', got EOF",
 	}}
 
 	for _, test := range tests {
@@ -218,7 +218,7 @@ func TestLexer_ScanError(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		tok, err := l.Scan()
 		assert.Equal(t, Token{}, tok)
-		assert.EqualError(t, err, "expected one of '\"', got EOF")
+		assert.EqualError(t, err, "0:6: expected one of '\"', got EOF")
 	}
 }
 
@@ -259,6 +259,6 @@ func TestLexer_PeekError(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		tok, err := l.Peek()
 		assert.Equal(t, Token{}, tok)
-		assert.EqualError(t, err, "expected one of '\"', got EOF")
+		assert.EqualError(t, err, "0:6: expected one of '\"', got EOF")
 	}
 }
