@@ -15,6 +15,10 @@ func isAlpha(r rune) bool {
 	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
 }
 
+func isNum(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
 // Lexer scans a sequence of tokens that match the grammar of Prometheus-like
 // matchers. A token is emitted for each call to Scan() which returns the
 // next token in the input or an error if the input does not conform to the
@@ -73,7 +77,7 @@ func (l *Lexer) Scan() (Token, error) {
 			var tok Token
 			tok, l.err = l.scanQuoted()
 			return tok, l.err
-		case isAlpha(r):
+		case r == '_' || isAlpha(r):
 			l.rewind()
 			var tok Token
 			tok, l.err = l.scanIdent()
@@ -91,7 +95,7 @@ func (l *Lexer) Scan() (Token, error) {
 
 func (l *Lexer) scanIdent() (Token, error) {
 	for r := l.next(); r != eof; r = l.next() {
-		if !isAlpha(r) {
+		if !isAlpha(r) && !isNum(r) && r != '_' && r != ':' {
 			l.rewind()
 			break
 		}

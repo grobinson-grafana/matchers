@@ -58,7 +58,31 @@ func TestLexer_Scan(t *testing.T) {
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
 	}, {
-		name:  "idents with space",
+		name:  "ident with underscore",
+		input: "hello_world",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello_world", Start: 0, End: 11},
+		},
+	}, {
+		name:  "ident with colon",
+		input: "hello:world",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello:world", Start: 0, End: 11},
+		},
+	}, {
+		name:  "ident with numbers",
+		input: "hello0123456789",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "hello0123456789", Start: 0, End: 15},
+		},
+	}, {
+		name:  "ident can start with underscore",
+		input: "_hello",
+		expected: []Token{
+			{Kind: TokenIdent, Value: "_hello", Start: 0, End: 6},
+		},
+	}, {
+		name:  "idents separated with space",
 		input: "hello world",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
@@ -137,11 +161,15 @@ func TestLexer_Scan(t *testing.T) {
 	}, {
 		name:  "unexpected emoji",
 		input: "🙂",
-		err: "0:4: unexpected input: 🙂",
+		err:   "0:4: unexpected input: 🙂",
 	}, {
 		name:  "unexpected unicode letter",
 		input: "Σ",
-		err: "0:2: unexpected input: Σ",
+		err:   "0:2: unexpected input: Σ",
+	}, {
+		name:  "unexpected : at start of ident",
+		input: ":hello",
+		err:   "0:1: unexpected input: :",
 	}, {
 		name:  "unexpected $ in ident",
 		input: "hello$",
