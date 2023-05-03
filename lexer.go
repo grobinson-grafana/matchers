@@ -83,7 +83,26 @@ func (l *Lexer) scanIdent() (Token, error) {
 }
 
 func (l *Lexer) scanOperator() (Token, error) {
-	l.acceptRun("!=~")
+	if err := l.expect("!="); err != nil {
+		return Token{}, err
+	}
+
+	// Rewind because we need to know if the rune was an '!' or an '='
+	l.rewind()
+
+	// If the first rune is an '!' then it must be followed with either an
+	// '=' or '~' to not match a string or regex
+	if l.accept("!") {
+		if err := l.expect("=~"); err != nil {
+			return Token{}, err
+		}
+		return l.emit(TokenOperator), nil
+	}
+
+	// If the first rune is an '=' then it can be followed with an optional
+	// '~' to match a regex
+	l.accept("=")
+	l.accept("~")
 	return l.emit(TokenOperator), nil
 }
 
@@ -128,12 +147,14 @@ func (l *Lexer) acceptRun(valid string) {
 func (l *Lexer) expect(valid string) error {
 	r := l.next()
 	if r == -1 {
+		l.rewind()
 		return fmt.Errorf("expected one of '%s', got EOF", valid)
-	}
-	if strings.IndexRune(valid, r) < 0 {
+	} else if strings.IndexRune(valid, r) < 0 {
+		l.rewind()
 		return fmt.Errorf("expected one of '%s', got '%c'", valid, r)
+	} else {
+		return nil
 	}
-	return nil
 }
 
 func (l *Lexer) emit(kind TokenKind) Token {

@@ -135,7 +135,7 @@ func TestLexer_Scan(t *testing.T) {
 		input: "$",
 		err:   "unexpected input: $",
 	}, {
-		name:  "unexpected non alpha numeric in ident",
+		name:  "unexpected non alpha-numeric in ident",
 		input: "hello$",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello"},
@@ -149,12 +149,34 @@ func TestLexer_Scan(t *testing.T) {
 		},
 		err: "unexpected input: hello🙂",
 	}, {
-		name:  "unexpected operator",
+		name: "invalid operator",
+		input: "!",
+		err: "expected one of '=~', got EOF",
+	}, {
+		name: "another invalid operator",
+		input: "~",
+		err: "unexpected input: ~",
+	}, {
+		name:  "unexpected $ in operator",
 		input: "=$",
 		expected: []Token{
 			{Kind: TokenOperator, Value: "="},
 		},
 		err: "unexpected input: =$",
+	}, {
+		name:  "unexpected ! after operator",
+		input: "=!",
+		expected: []Token{
+			{Kind: TokenOperator, Value: "="},
+		},
+		err: "expected one of '=~', got EOF",
+	}, {
+		name:  "unexpected !! after operator",
+		input: "!=!!",
+		expected: []Token{
+			{Kind: TokenOperator, Value: "!="},
+		},
+		err: "expected one of '=~', got '!'",
 	}, {
 		name:  "unterminated quoted",
 		input: "\"hello",
