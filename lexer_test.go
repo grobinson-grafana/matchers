@@ -188,3 +188,14 @@ func TestLexer_Scan(t *testing.T) {
 		})
 	}
 }
+
+// This test asserts that the lexer does not emit more tokens after an
+// error has occurred.
+func TestLexer_ScanError(t *testing.T) {
+	l := NewLexer("\"hello")
+	for i := 0; i < 10; i++ {
+		tok, err := l.Scan()
+		assert.Equal(t, Token{}, tok)
+		assert.EqualError(t, err, "expected one of '\"', got EOF")
+	}
+}

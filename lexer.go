@@ -32,11 +32,6 @@ func NewLexer(input string) Lexer {
 }
 
 func (l *Lexer) Scan() (Token, error) {
-	var (
-		err error
-		tok Token
-	)
-
 	// Do not attempt to emit more tokens if the input is invalid
 	if l.err != nil {
 		return Token{}, l.err
@@ -44,36 +39,37 @@ func (l *Lexer) Scan() (Token, error) {
 
 	// Iterate over each rune in the input and either emit a token or an error
 	for r := l.next(); r != eof; r = l.next() {
-		if r == '{' {
-			tok = l.emit(TokenOpenParen)
-			break
-		} else if r == '}' {
-			tok = l.emit(TokenCloseParen)
-			break
-		} else if r == ',' {
-			tok = l.emit(TokenComma)
-			break
-		} else if r == '=' || r == '!' {
+		switch {
+		case r == '{':
+			return l.emit(TokenOpenParen), nil
+		case r == '}':
+			return l.emit(TokenCloseParen), nil
+		case r == ',':
+			return l.emit(TokenComma), nil
+		case r == '=' || r == '!':
 			l.rewind()
-			tok, err = l.scanOperator()
-			break
-		} else if r == '"' {
+			var tok Token
+			tok, l.err = l.scanOperator()
+			return tok, l.err
+		case r == '"':
 			l.rewind()
-			tok, err = l.scanQuoted()
-			break
-		} else if unicode.IsLetter(r) {
+			var tok Token
+			tok, l.err = l.scanQuoted()
+			return tok, l.err
+		case unicode.IsLetter(r):
 			l.rewind()
-			tok, err = l.scanIdent()
-			break
-		} else if unicode.IsSpace(r) {
+			var tok Token
+			tok, l.err = l.scanIdent()
+			return tok, l.err
+		case unicode.IsSpace(r):
 			l.skip()
-		} else {
-			err = fmt.Errorf("unexpected input: %s", l.input[0:l.pos])
-			break
+		default:
+			l.err = fmt.Errorf("unexpected input: %s", l.input[0:l.pos])
+			return Token{}, l.err
 		}
 	}
 
-	return tok, err
+	return Token{}, nil
 }
 
 func (l *Lexer) scanIdent() (Token, error) {
