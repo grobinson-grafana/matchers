@@ -157,40 +157,40 @@ func TestLexer_Scan(t *testing.T) {
 	}, {
 		name:  "unexpected $",
 		input: "$",
-		err:   "0:1: unexpected input: $",
+		err:   "0:1: $: invalid input",
 	}, {
 		name:  "unexpected emoji",
 		input: "🙂",
-		err:   "0:4: unexpected input: 🙂",
+		err:   "0:4: 🙂: invalid input",
 	}, {
 		name:  "unexpected unicode letter",
 		input: "Σ",
-		err:   "0:2: unexpected input: Σ",
+		err:   "0:2: Σ: invalid input",
 	}, {
 		name:  "unexpected : at start of ident",
 		input: ":hello",
-		err:   "0:1: unexpected input: :",
+		err:   "0:1: :: invalid input",
 	}, {
 		name:  "unexpected $ in ident",
 		input: "hello$",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
-		err: "5:6: unexpected input: $",
+		err: "5:6: $: invalid input",
 	}, {
 		name:  "unexpected unicode letter in ident",
 		input: "helloΣ",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
-		err: "5:7: unexpected input: Σ",
+		err: "5:7: Σ: invalid input",
 	}, {
 		name:  "unexpected emoji in ident",
 		input: "hello🙂",
 		expected: []Token{
 			{Kind: TokenIdent, Value: "hello", Start: 0, End: 5},
 		},
-		err: "5:9: unexpected input: 🙂",
+		err: "5:9: 🙂: invalid input",
 	}, {
 		name:  "invalid operator",
 		input: "!",
@@ -198,14 +198,14 @@ func TestLexer_Scan(t *testing.T) {
 	}, {
 		name:  "another invalid operator",
 		input: "~",
-		err:   "0:1: unexpected input: ~",
+		err:   "0:1: ~: invalid input",
 	}, {
 		name:  "unexpected $ in operator",
 		input: "=$",
 		expected: []Token{
 			{Kind: TokenOperator, Value: "=", Start: 0, End: 1},
 		},
-		err: "1:2: unexpected input: $",
+		err: "1:2: $: invalid input",
 	}, {
 		name:  "unexpected ! after operator",
 		input: "=!",

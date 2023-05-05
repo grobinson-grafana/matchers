@@ -50,23 +50,23 @@ func TestParse(t *testing.T) {
 	}, {
 		name:  "open paren",
 		input: "{",
-		error: "expected a label name, got ''",
+		error: "EOF: expected label name",
 	}, {
 		name:  "close paren",
 		input: "}",
-		error: "expected opening '{'",
+		error: "0:1: unexpected }: expected opening '{'",
 	}, {
 		name:  "no parens",
 		input: "foo=\"bar\"",
-		error: "expected opening '{'",
+		error: "0:3: unexpected foo: expected opening '{'",
 	}, {
 		name:  "invalid operator",
 		input: "{foo=:\"bar\"}",
-		error: "expected a label value, got ''",
+		error: "5:6: :: invalid input: expected label value",
 	}, {
 		name:  "another invalid operator",
 		input: "{foo%=\"bar\"}",
-		error: "expected one of '=', '!=', '=~' or '!~', got ''",
+		error: "4:5: %: invalid input: expected an operator such as '=', '!=', '=~' or '!~'",
 	}}
 
 	for _, test := range tests {

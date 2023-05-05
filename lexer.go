@@ -19,6 +19,18 @@ func isNum(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
+// InvalidInputError is returned when the next rune in the input does not match
+// the grammar of Prometheus-like matchers.
+type InvalidInputError struct {
+	input string
+	start int
+	end   int
+}
+
+func (e InvalidInputError) Error() string {
+	return fmt.Sprintf("%d:%d: %s: invalid input", e.start, e.end, e.input[e.start:e.end])
+}
+
 // Lexer scans a sequence of tokens that match the grammar of Prometheus-like
 // matchers. A token is emitted for each call to Scan() which returns the
 // next token in the input or an error if the input does not conform to the
@@ -85,7 +97,7 @@ func (l *Lexer) Scan() (Token, error) {
 		case unicode.IsSpace(r):
 			l.skip()
 		default:
-			l.err = fmt.Errorf("%d:%d: unexpected input: %c", l.start, l.pos, r)
+			l.err = InvalidInputError{input: l.input, start: l.start, end: l.pos}
 			return Token{}, l.err
 		}
 	}

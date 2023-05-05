@@ -45,3 +45,7 @@ type Token struct {
 func (t Token) String() string {
 	return fmt.Sprintf("(%s) '%s'", t.Kind, t.Value)
 }
+
+func IsNone(t Token) bool {
+	return t == Token{}
+}
