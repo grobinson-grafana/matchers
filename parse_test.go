@@ -43,6 +43,14 @@ func TestParse(t *testing.T) {
 		input:    "foo=bar",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchEqual, "foo", "bar")},
 	}, {
+		name:     "equals with trailing comma",
+		input:    "{foo=\"bar\",}",
+		expected: labels.Matchers{mustNewMatcher(t, labels.MatchEqual, "foo", "bar")},
+	}, {
+		name:     "equals without parens but trailing comma",
+		input:    "foo=\"bar\",",
+		expected: labels.Matchers{mustNewMatcher(t, labels.MatchEqual, "foo", "bar")},
+	}, {
 		name:     "not equals",
 		input:    "{foo!=\"bar\"}",
 		expected: labels.Matchers{mustNewMatcher(t, labels.MatchNotEqual, "foo", "bar")},

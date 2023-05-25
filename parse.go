@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	ErrEOF                 = errors.New("end of input")
-	ErrNoOpenParen         = errors.New("expected opening paren")
-	ErrNoCloseParen        = errors.New("expected close paren")
-	ErrNoLabelName         = errors.New("expected label name")
-	ErrNoLabelValue        = errors.New("expected label value")
-	ErrNoOperator          = errors.New("expected an operator such as '=', '!=', '=~' or '!~'")
-	ErrExpectedEOF         = errors.New("expected end of input")
+	ErrEOF          = errors.New("end of input")
+	ErrNoOpenParen  = errors.New("expected opening paren")
+	ErrNoCloseParen = errors.New("expected close paren")
+	ErrNoLabelName  = errors.New("expected label name")
+	ErrNoLabelValue = errors.New("expected label value")
+	ErrNoOperator   = errors.New("expected an operator such as '=', '!=', '=~' or '!~'")
+	ErrExpectedEOF  = errors.New("expected end of input")
 )
 
 // Parser reads the sequence of tokens from the lexer and returns either a
@@ -166,8 +166,28 @@ func (p *Parser) parseCloseParen(l *Lexer) (parseFn, error) {
 	return p.parseEOF, nil
 }
 
+func (p *Parser) parseComma(l *Lexer) (parseFn, error) {
+	if _, err := p.expect(l.Scan, TokenComma); err != nil {
+		return nil, fmt.Errorf("%s: %s", err, "expected a comma")
+	}
+	// The token after the comma can be another matcher, a close paren or the
+	// end of input
+	tok, err := p.expect(l.Peek, TokenCloseParen, TokenIdent, TokenQuoted)
+	if err != nil {
+		if errors.Is(err, ErrEOF) {
+			// If this is the end of input we still need to check if the optional
+			// open paren has a matching close paren
+			return p.parseCloseParen, nil
+		}
+		return nil, fmt.Errorf("%s: %s", err, "expected a matcher or close paren after comma")
+	}
+	if tok.Kind == TokenCloseParen {
+		return p.parseCloseParen, nil
+	}
+	return p.parseLabelMatcher, nil
+}
+
 func (p *Parser) parseEOF(l *Lexer) (parseFn, error) {
-	// There should be no input
 	if _, err := p.expect(l.Scan, TokenNone); err != nil {
 		return nil, fmt.Errorf("%s: %w", err, ErrExpectedEOF)
 	}
@@ -213,43 +233,26 @@ func (p *Parser) parseLabelMatcher(l *Lexer) (parseFn, error) {
 	}
 	p.matchers = append(p.matchers, m)
 
-	return p.parseCoda, nil
+	return p.parseLabelMatcherEnd, nil
 }
 
-func (p *Parser) parseCoda(l *Lexer) (parseFn, error) {
-	var (
-		err error
-		tok Token
-	)
-
-	// The next token can be either a comma, a close paren or end of input
-	tok, err = p.expect(l.Peek, TokenComma, TokenCloseParen)
+func (p *Parser) parseLabelMatcherEnd(l *Lexer) (parseFn, error) {
+	tok, err := p.expect(l.Peek, TokenComma, TokenCloseParen)
 	if err != nil {
-		// If this is the end of input we still need to check if the (optional)
+		// If this is the end of input we still need to check if the optional
 		// open paren has a matching close paren
 		if errors.Is(err, ErrEOF) {
 			return p.parseCloseParen, nil
 		}
 		return nil, fmt.Errorf("%s: %s", err, "expected a comma or close paren")
 	}
-
 	if tok.Kind == TokenCloseParen {
 		return p.parseCloseParen, nil
+	} else if tok.Kind == TokenComma {
+		return p.parseComma, nil
+	} else {
+		panic("unreachable")
 	}
-
-	if tok.Kind == TokenComma {
-		// The next token is a comma, and so we expect to parse more matchers.
-		// That means the next token must be a label name.
-		if _, err = l.Scan(); err != nil {
-			panic("Unexpected error scanning peeked comma")
-		}
-		if _, err = p.expect(l.Peek, TokenIdent, TokenQuoted); err != nil {
-			return nil, fmt.Errorf("%s: %s", err, "expected another matcher after comma")
-		}
-		return p.parseLabelMatcher, nil
-	}
-
-	return nil, ErrEOF
 }
 
 func Parse(input string) (labels.Matchers, error) {
