@@ -131,7 +131,7 @@ func TestParse(t *testing.T) {
 		input: "{foo%=\"bar\"}",
 		error: "4:5: %: invalid input: expected an operator such as '=', '!=', '=~' or '!~'",
 	}, {
-		name: "invalid escape sequence",
+		name:  "invalid escape sequence",
 		input: "{foo=\"bar\\w\"}",
 		error: "5:12: \"bar\\w\": invalid input",
 	}}
