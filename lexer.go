@@ -233,15 +233,16 @@ func (l *Lexer) scanQuoted() (Token, error) {
 }
 
 func (l *Lexer) accept(valid string) bool {
-	if strings.IndexRune(valid, l.next()) >= 0 {
+	if strings.ContainsRune(valid, l.next()) {
 		return true
 	}
 	l.rewind()
 	return false
 }
 
+//lint:ignore U1000 this might be used in future
 func (l *Lexer) acceptRun(valid string) {
-	for strings.IndexRune(valid, l.next()) >= 0 {
+	for strings.ContainsRune(valid, l.next()) {
 	}
 	l.rewind()
 }
@@ -258,7 +259,7 @@ func (l *Lexer) expect(valid string) error {
 			columnEnd:   l.cols,
 			expected:    valid,
 		}
-	} else if strings.IndexRune(valid, r) < 0 {
+	} else if !strings.ContainsRune(valid, r) {
 		l.rewind()
 		return ExpectedError{
 			input:       l.input,
@@ -297,7 +298,7 @@ func (l *Lexer) next() rune {
 	r, width := utf8.DecodeRuneInString(l.input[l.pos:])
 	l.width = width
 	l.pos += width
-	l.cols += 1
+	l.cols++
 	return r
 }
 
@@ -305,11 +306,11 @@ func (l *Lexer) rewind() {
 	if l.width > 0 {
 		l.pos -= l.width
 		l.width = 0
-		l.cols -= 1
+		l.cols--
 	}
 }
 
 func (l *Lexer) skip() {
 	l.start = l.pos
-	l.column += 1
+	l.column++
 }
